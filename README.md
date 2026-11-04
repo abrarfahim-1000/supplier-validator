@@ -27,19 +27,36 @@ frontend/         React + Vite + TypeScript app
 Everything under `backend/` is Python and runs from that directory. Files at the root are
 shared: the API contract, the ground truth, and the documentation.
 
-## Status
+## What the project does
 
-Steps 1 to 4 are implemented: schemas, rules-as-data, normalization, deterministic checks
-and decision precedence; PDF text extraction, LLM field extraction with schema validation
-and bounded retries; the fixed, linear LangGraph pipeline; the evaluation harness that
-scores against `ground_truth.csv`; and the hosted API job flow with its exported OpenAPI
-contract. All of it is covered by tests that use synthetic PDFs and canned model output, so
-no live model is called. The frontend covers the whole journey: upload, job polling with
-real progress, and a results dashboard with one collapsible card per supplier document.
-Deployment is the remaining step (see `AGENTS.md`).
+The checker accepts a purchase request and supplier quote PDFs, extracts quote fields, and
+compares them with the request and company rules. It returns one result per quote with a
+decision, rule checks, reasons, flags for uncertain fields, and the source snippets that
+support its findings.
 
-The current handoff notes in `HANDOFF.md` describe the state at the end of step 4 and what
-the frontend codes against.
+The processing pipeline is a fixed LangGraph flow, run once per document. The model is used
+only to extract fields from PDF text. Pydantic validates the extracted structure and source
+snippets; Python code normalizes values, matches purchase request lines, performs all
+comparisons and arithmetic, evaluates every configured rule, and decides the outcome. The
+model never sets thresholds or makes the final decision. A missing, ambiguous, invalid, or
+unverifiable value is routed to **Needs a person to check** instead of being guessed.
+
+The frontend provides one upload, processing, and results flow. The API runs documents
+sequentially within a job, reports progress from the graph stages, and keeps job state in
+memory until expiry. The repository includes a CLI for local runs, an evaluation harness,
+synthetic tests, and the OpenAPI contract used to generate frontend API types.
+
+## Tech stack
+
+- **Backend:** Python 3.12, managed with `uv`; Pydantic v2 schemas; LangGraph orchestration;
+  `pdfplumber` with `pypdf` fallback for PDF text; OpenAI Python SDK configured for an
+  OpenRouter-compatible endpoint; FastAPI, `python-multipart`, and Uvicorn for the API.
+- **Frontend:** React, TypeScript, and Vite. API types are generated from
+  `contracts/openapi.json` with `openapi-typescript`; Vitest covers frontend logic.
+- **Quality and evaluation:** `pytest` for backend tests, `ruff` for linting and formatting,
+  `mypy` for type checking, and `ground_truth.csv` for decision evaluation.
+
+Tests use synthetic documents and canned model responses. They do not call a live model.
 
 ## Pipeline
 
@@ -50,17 +67,6 @@ terminal **Needs a person to check** result with a reason. Uncertain individual 
 not branch there; the checks return needs-person and precedence (reject over needs-person
 over approve) settles the outcome. Multi-line quotes, unmatched purchase request lines and
 other cases outside the numbered rules produce an `EDGE-*` reason with no rule ID.
-
-## Sample files (not in this repo)
-
-The sample files are never committed. Copy them into `backend/data/` locally:
-
-```
-backend/data/purchase-request.csv
-backend/data/supplier-pack-01.pdf ... supplier-pack-10.pdf
-```
-
-`data/` is git-ignored.
 
 ## Rules and ground truth
 
@@ -77,56 +83,112 @@ request line) is an edge case and routes to a person with an `EDGE-*` code and n
 ## Requirements
 
 - Python 3.12 via [uv](https://docs.astral.sh/uv/)
-- Node 20+ for the frontend
+- Node.js 20+ and npm for the frontend
+- Bash to use `dev.sh` (Git Bash or WSL on Windows)
 
 ## Setup
 
-Everything below runs from `backend/`:
+From the repository root, install the backend and frontend dependencies:
 
 ```bash
-cd backend
-uv sync
+cd backend && uv sync
+cd ../frontend && npm install
+cd ..
 ```
 
-Copy `backend/.env.example` to `backend/.env` and fill in the LLM settings when you run
-extraction. The deterministic tests never call a live model.
+Copy `backend/.env.example` to `backend/.env` and set `OPENROUTER_MODEL` and
+`OPENROUTER_API_KEY` before running the CLI or submitting a job that needs extraction. The
+default base URL is `https://openrouter.ai/api/v1`. Keep real keys in the local `.env` or
+environment; never put them in frontend variables. The backend also reads its environment
+file when the CLI or evaluation harness starts. Real environment variables take precedence,
+and a missing `.env` is allowed. `ENV_FILE` selects a different environment file when needed.
 
-The backend and the evaluation harness load `.env` themselves on startup, so nothing needs
-to be exported first. Real environment variables always win over the file, a missing `.env`
-is not an error (the hosted deployment has none), and `ENV_FILE` points the loader at a
-different file when needed. Tests set `ENV_FILE` to a nonexistent path so a developer's
-`.env` never leaks into a test run.
+For example, in Bash:
+
+```bash
+cp backend/.env.example backend/.env
+```
+
+Tests set `ENV_FILE` to a nonexistent path so a developer's local `.env` does not affect
+test runs. You can run them without live model credentials.
 
 `LLM_REASONING_EFFORT` is optional and is sent to the endpoint as `reasoning.effort`. Set it
 to `none` for a reasoning model so a call fits inside `LLM_TIMEOUT_SECONDS`; leave it empty
 for an endpoint that does not accept the field.
 
-## Frontend
+## Run the app locally
 
-The app lives in `frontend/` and is a static Vite build. It needs Node 20+.
-
-To run the local API and frontend together from the repository root, use Bash:
+After installing dependencies, start both local services together from the repository root:
 
 ```bash
 bash ./dev.sh
 ```
 
-This uses the existing backend virtual environment and frontend dependencies, starts the API
-at `http://127.0.0.1:8000` (or reuses a healthy API already there) and serves the frontend at
-`http://localhost:5173`, the backend's configured CORS origin. Ctrl+C stops processes the
-script started. Set `API_PORT` or
-`FRONTEND_PORT` to change the ports. For a first-time setup, run `uv sync` from `backend/`
-and `npm install` from `frontend/` first.
+`dev.sh` starts the FastAPI backend and Vite frontend in parallel. Open
+`http://localhost:5173`; the API runs at `http://127.0.0.1:8000` by default. The script uses
+the installed `backend/.venv` and `frontend/node_modules`, exits if a healthy API already
+responds on the selected API port, and stops both services when you press Ctrl+C. It is a
+Bash script, so on Windows run it from Git Bash or WSL. Set `API_HOST`, `API_PORT`,
+`FRONTEND_HOST`, or `FRONTEND_PORT` to change the bind addresses and ports.
+`VITE_API_BASE_URL` can override the API URL passed to Vite.
+
+For a first run, complete the setup above and configure the backend model credentials. You
+can also run either service on its own while developing:
 
 ```bash
-cd frontend
-npm install
-npm run dev        # http://localhost:5173
+cd backend && uv run uvicorn api.app:create_app --factory --host 127.0.0.1 --port 8000
 ```
 
-Copy `frontend/.env.example` to `frontend/.env` to point `VITE_API_BASE_URL` at the API. The
-local default is `http://127.0.0.1:8000`. The variable is
-public and set at build time; the frontend holds no secrets.
+In a second terminal, run the frontend from the repository root:
+
+```bash
+cd frontend && npm run dev -- --host localhost --port 5173
+```
+
+The frontend's optional `frontend/.env` can set `VITE_API_BASE_URL`; copy
+`frontend/.env.example` to create it. This is a public build-time URL, never a place for
+secrets. The default points to the local backend.
+
+The page accepts one purchase request CSV or JSON file and up to the configured number of
+supplier PDFs (20 by default). It creates a job, polls for real backend stage progress, and
+shows one expandable result card per document after the job completes. A processing failure
+is shown as needing a person, not as an automatic rejection.
+
+## CLI
+
+The CLI runs the same extraction, comparison, rules, and decision pipeline without the web
+API or ground-truth scoring. It finds every top-level `*.pdf` in a directory, processes them
+in filename order, and prints each decision with its reasons. Put the purchase request CSV
+in that directory as `purchase-request.csv`, or pass its path explicitly.
+
+Place local sample or synthetic input files under `backend/data/` (see
+[Sample files](#sample-files-not-in-this-repo)), then from `backend/` run:
+
+```bash
+uv run python -m checker.cli
+```
+
+To use another input directory or specify the purchase request and rules files:
+
+```bash
+uv run python -m checker.cli --data-dir path/to/documents \
+  --purchase-request path/to/purchase-request.csv \
+  --rules rules/company_rules.yaml
+```
+
+Options `--purchase-request` and `--rules` are optional. By default, the purchase request is
+`<data-dir>/purchase-request.csv`, and the rules are `backend/rules/company_rules.yaml`.
+The CLI needs working OpenRouter settings because it calls the configured extraction model.
+It returns exit code `0` when every document produced a result, even if some decisions are
+Reject or Needs a person; it returns `2` when the input files or setup are unusable. Run
+`uv run python -m checker.cli --help` for the available options.
+
+For scored evaluation against the hand-written expected outcomes, use the separate
+`evals/run_eval.py` command described in [Evaluation](#evaluation).
+
+## Frontend development
+
+The app lives in `frontend/` and is a static Vite build. It needs Node.js 20+.
 
 Checks, from `frontend/`:
 
@@ -140,14 +202,6 @@ npm run build
 `src/api/schema.d.ts` is generated from `contracts/openapi.json`; never edit it by hand.
 After a contract change, re-export the contract from `backend/`, then run
 `npm run generate:api`.
-
-The page accepts one purchase request CSV or JSON file and up to twenty supplier quotation PDFs, with a
-progress ring per selected file. `Run validation` creates a real job and polls its status,
-showing real document progress and a spinner until the backend reports the job finished. The
-results then render below the upload section, which is scrolled into view: decision counts,
-and one collapsible card per document with its extracted fields, purchase request comparison,
-every rule check, the supporting snippets and the final decision. A document that failed
-processing is shown as needing a person with its failure reason, never as rejected.
 
 Problems found while building this, with causes and fixes, are recorded in `ISSUES.md`.
 
@@ -290,8 +344,3 @@ for a line printed as `Supplier TIN: ... BIN: ...`), the quote is checked agains
 document and, if the value appears verbatim on exactly one printed line, that line becomes
 the evidence. A value that appears nowhere, or on several lines, is never guessed: the field
 stays unverified and the document is routed to a person.
-
-## Env example
-
-See `backend/.env.example`. Backend secrets stay in the backend environment; the frontend
-only gets the public API base URL.
