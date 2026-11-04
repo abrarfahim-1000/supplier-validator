@@ -22,7 +22,7 @@ __pycache__/
 .python-version.local
 *.egg-info/
 build/
-dist/
+
 
 # Tooling caches
 .pytest_cache/
@@ -37,7 +37,7 @@ htmlcov/
 
 # Frontend
 node_modules/
-dist/
+
 coverage/
 .vite/
 .eslintcache
