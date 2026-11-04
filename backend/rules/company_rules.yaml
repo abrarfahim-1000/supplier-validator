@@ -1,0 +1,63 @@
+# Company rules as data, transcribed from company-rules.md by the agent on 2026-11-03
+# for the project owner's review. Thresholds live here and nowhere else: check functions
+# read them from this file, so changing a number changes behaviour without a code change.
+#
+# Rule IDs follow the numbered lists in the source document: reject rules in order
+# (REJ-01..REJ-05), then needs-person rules (NP-01..NP-07). Cases outside those numbered
+# rules (multi-line quotes, unreadable PDFs, unmatched purchase request lines, a penalty
+# below the note's minimum) are edge cases and are not given rule IDs.
+ruleset: supplier-rules
+version: 1
+currency: BDT
+
+thresholds:
+  price_over_max_percent: "3"
+  advance_max_percent: "20"
+  delivery_reject_days: 45
+  delivery_review_min_days: 31
+  delivery_review_max_days: 45
+  quantity_gap_percent: "5"
+  payment_min_days: 30
+  payment_max_days: 60
+  vat_percent: "15"
+  validity_min_days: 30
+  late_penalty_min_percent_per_week: "0.5"
+  arithmetic_tolerance_bdt: "0.01"
+
+rules:
+  - id: REJ-01
+    severity: reject
+    title: "Unit price is more than 3% above the maximum unit price in the purchase request."
+  - id: REJ-02
+    severity: reject
+    title: "Advance payment is more than 20%."
+  - id: REJ-03
+    severity: reject
+    title: "The contract has no late-delivery penalty clause."
+  - id: REJ-04
+    severity: reject
+    title: "The supplier's TIN or BIN is missing."
+  - id: REJ-05
+    severity: reject
+    title: "Delivery is promised later than 45 days after the purchase order."
+  - id: NP-01
+    severity: needs_person
+    title: "Unit price is above the maximum, but by no more than 3%."
+  - id: NP-02
+    severity: needs_person
+    title: "Quantity differs from the quantity requested by more than 5%."
+  - id: NP-03
+    severity: needs_person
+    title: "Payment terms are unclear, or outside 30 to 60 days after delivery."
+  - id: NP-04
+    severity: needs_person
+    title: "Delivery is promised in 31 to 45 days."
+  - id: NP-05
+    severity: needs_person
+    title: "VAT is not shown separately at 15%."
+  - id: NP-06
+    severity: needs_person
+    title: "The numbers do not add up (for example line total or subtotal is wrong)."
+  - id: NP-07
+    severity: needs_person
+    title: "The quotation is valid for less than 30 days."

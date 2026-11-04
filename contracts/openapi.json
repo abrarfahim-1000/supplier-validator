@@ -1,0 +1,1392 @@
+{
+  "components": {
+    "schemas": {
+      "Body_create_job_jobs_post": {
+        "properties": {
+          "purchase_request": {
+            "contentMediaType": "application/octet-stream",
+            "description": "Company purchase request, one CSV or JSON file",
+            "title": "Purchase Request",
+            "type": "string"
+          },
+          "supplier_quotes": {
+            "anyOf": [
+              {
+                "items": {
+                  "contentMediaType": "application/octet-stream",
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Supplier quotation PDFs, up to the configured cap",
+            "title": "Supplier Quotes"
+          }
+        },
+        "required": [
+          "purchase_request"
+        ],
+        "title": "Body_create_job_jobs_post",
+        "type": "object"
+      },
+      "CheckResult": {
+        "description": "One deterministic check. Rule checks carry a rule ID; edge cases do not.",
+        "properties": {
+          "code": {
+            "title": "Code",
+            "type": "string"
+          },
+          "detail": {
+            "title": "Detail",
+            "type": "string"
+          },
+          "evidence": {
+            "items": {
+              "$ref": "#/components/schemas/Evidence"
+            },
+            "title": "Evidence",
+            "type": "array"
+          },
+          "rule_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Rule Id"
+          },
+          "status": {
+            "$ref": "#/components/schemas/CheckStatus"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          }
+        },
+        "required": [
+          "code",
+          "rule_id",
+          "title",
+          "status",
+          "detail"
+        ],
+        "title": "CheckResult",
+        "type": "object"
+      },
+      "CheckStatus": {
+        "enum": [
+          "pass",
+          "needs_person",
+          "reject"
+        ],
+        "title": "CheckStatus",
+        "type": "string"
+      },
+      "ComparisonIssue": {
+        "enum": [
+          "none",
+          "no_match",
+          "ambiguous_match",
+          "unusable_values",
+          "multiple_line_items"
+        ],
+        "title": "ComparisonIssue",
+        "type": "string"
+      },
+      "Decision": {
+        "enum": [
+          "approve",
+          "reject",
+          "needs_person"
+        ],
+        "title": "Decision",
+        "type": "string"
+      },
+      "DocumentResult": {
+        "properties": {
+          "checks": {
+            "items": {
+              "$ref": "#/components/schemas/CheckResult"
+            },
+            "title": "Checks",
+            "type": "array"
+          },
+          "comparison": {
+            "$ref": "#/components/schemas/PurchaseRequestComparison"
+          },
+          "decision": {
+            "$ref": "#/components/schemas/Decision"
+          },
+          "document_id": {
+            "title": "Document Id",
+            "type": "string"
+          },
+          "failure_detail": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Failure Detail"
+          },
+          "flags": {
+            "items": {
+              "$ref": "#/components/schemas/FieldFlag"
+            },
+            "title": "Flags",
+            "type": "array"
+          },
+          "processing_failure": {
+            "default": false,
+            "title": "Processing Failure",
+            "type": "boolean"
+          },
+          "quotation_number": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Quotation Number"
+          },
+          "quote": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Quote"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "reasons": {
+            "items": {
+              "$ref": "#/components/schemas/Reason"
+            },
+            "title": "Reasons",
+            "type": "array"
+          },
+          "source_filename": {
+            "title": "Source Filename",
+            "type": "string"
+          },
+          "supplier_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Supplier Name"
+          }
+        },
+        "required": [
+          "document_id",
+          "source_filename",
+          "decision",
+          "reasons",
+          "checks"
+        ],
+        "title": "DocumentResult",
+        "type": "object"
+      },
+      "DocumentStatusPayload": {
+        "properties": {
+          "filename": {
+            "description": "Original upload filename, for display only",
+            "title": "Filename",
+            "type": "string"
+          },
+          "id": {
+            "description": "Server-generated document id, stable within the job",
+            "title": "Id",
+            "type": "string"
+          },
+          "stages": {
+            "items": {
+              "$ref": "#/components/schemas/StageStatusPayload"
+            },
+            "title": "Stages",
+            "type": "array"
+          },
+          "state": {
+            "$ref": "#/components/schemas/ProgressState"
+          }
+        },
+        "required": [
+          "id",
+          "filename",
+          "state",
+          "stages"
+        ],
+        "title": "DocumentStatusPayload",
+        "type": "object"
+      },
+      "ErrorDetail": {
+        "properties": {
+          "code": {
+            "description": "Stable machine-readable code the frontend can switch on",
+            "title": "Code",
+            "type": "string"
+          },
+          "message": {
+            "description": "Human-readable explanation, safe to display",
+            "title": "Message",
+            "type": "string"
+          }
+        },
+        "required": [
+          "code",
+          "message"
+        ],
+        "title": "ErrorDetail",
+        "type": "object"
+      },
+      "ErrorResponse": {
+        "properties": {
+          "error": {
+            "$ref": "#/components/schemas/ErrorDetail"
+          }
+        },
+        "required": [
+          "error"
+        ],
+        "title": "ErrorResponse",
+        "type": "object"
+      },
+      "Evidence": {
+        "properties": {
+          "field": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Field"
+          },
+          "snippet": {
+            "title": "Snippet",
+            "type": "string"
+          },
+          "source": {
+            "$ref": "#/components/schemas/EvidenceSource"
+          }
+        },
+        "required": [
+          "source",
+          "snippet"
+        ],
+        "title": "Evidence",
+        "type": "object"
+      },
+      "EvidenceSource": {
+        "enum": [
+          "supplier_document",
+          "purchase_request"
+        ],
+        "title": "EvidenceSource",
+        "type": "string"
+      },
+      "ExtractedField_Annotated_Decimal__PlainSerializer__": {
+        "properties": {
+          "note": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Note"
+          },
+          "snippet": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Snippet"
+          },
+          "status": {
+            "$ref": "#/components/schemas/FieldStatus",
+            "default": "missing"
+          },
+          "value": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Value"
+          }
+        },
+        "title": "ExtractedField[Annotated[Decimal, PlainSerializer]]",
+        "type": "object"
+      },
+      "ExtractedField_bool_": {
+        "properties": {
+          "note": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Note"
+          },
+          "snippet": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Snippet"
+          },
+          "status": {
+            "$ref": "#/components/schemas/FieldStatus",
+            "default": "missing"
+          },
+          "value": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Value"
+          }
+        },
+        "title": "ExtractedField[bool]",
+        "type": "object"
+      },
+      "ExtractedField_str_": {
+        "properties": {
+          "note": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Note"
+          },
+          "snippet": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Snippet"
+          },
+          "status": {
+            "$ref": "#/components/schemas/FieldStatus",
+            "default": "missing"
+          },
+          "value": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Value"
+          }
+        },
+        "title": "ExtractedField[str]",
+        "type": "object"
+      },
+      "FieldFlag": {
+        "description": "A field a rule depends on that is missing, ambiguous or unverified.",
+        "properties": {
+          "code": {
+            "title": "Code",
+            "type": "string"
+          },
+          "detail": {
+            "title": "Detail",
+            "type": "string"
+          },
+          "field": {
+            "title": "Field",
+            "type": "string"
+          }
+        },
+        "required": [
+          "code",
+          "field",
+          "detail"
+        ],
+        "title": "FieldFlag",
+        "type": "object"
+      },
+      "FieldStatus": {
+        "description": "Why a field can or cannot be used by a rule.",
+        "enum": [
+          "ok",
+          "missing",
+          "ambiguous",
+          "unverified"
+        ],
+        "title": "FieldStatus",
+        "type": "string"
+      },
+      "HTTPValidationError": {
+        "properties": {
+          "detail": {
+            "items": {
+              "$ref": "#/components/schemas/ValidationError"
+            },
+            "title": "Detail",
+            "type": "array"
+          }
+        },
+        "title": "HTTPValidationError",
+        "type": "object"
+      },
+      "HealthResponse": {
+        "properties": {
+          "status": {
+            "const": "ok",
+            "default": "ok",
+            "title": "Status",
+            "type": "string"
+          },
+          "version": {
+            "title": "Version",
+            "type": "string"
+          }
+        },
+        "required": [
+          "version"
+        ],
+        "title": "HealthResponse",
+        "type": "object"
+      },
+      "JobCreatedResponse": {
+        "properties": {
+          "created_at": {
+            "description": "ISO 8601 timestamp, UTC",
+            "title": "Created At",
+            "type": "string"
+          },
+          "documents_total": {
+            "title": "Documents Total",
+            "type": "integer"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "state": {
+            "$ref": "#/components/schemas/JobState"
+          }
+        },
+        "required": [
+          "id",
+          "state",
+          "documents_total",
+          "created_at"
+        ],
+        "title": "JobCreatedResponse",
+        "type": "object"
+      },
+      "JobErrorPayload": {
+        "properties": {
+          "code": {
+            "title": "Code",
+            "type": "string"
+          },
+          "message": {
+            "title": "Message",
+            "type": "string"
+          }
+        },
+        "required": [
+          "code",
+          "message"
+        ],
+        "title": "JobErrorPayload",
+        "type": "object"
+      },
+      "JobResultsResponse": {
+        "properties": {
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "results": {
+            "description": "One result per document, in upload order",
+            "items": {
+              "$ref": "#/components/schemas/DocumentResult"
+            },
+            "title": "Results",
+            "type": "array"
+          },
+          "state": {
+            "$ref": "#/components/schemas/JobState"
+          }
+        },
+        "required": [
+          "id",
+          "state",
+          "results"
+        ],
+        "title": "JobResultsResponse",
+        "type": "object"
+      },
+      "JobState": {
+        "description": "Overall job state, polled by the frontend until it is terminal.",
+        "enum": [
+          "queued",
+          "processing",
+          "completed",
+          "failed"
+        ],
+        "title": "JobState",
+        "type": "string"
+      },
+      "JobStatusResponse": {
+        "description": "Small polling payload: counts and stage names only, never results.",
+        "properties": {
+          "created_at": {
+            "title": "Created At",
+            "type": "string"
+          },
+          "documents": {
+            "items": {
+              "$ref": "#/components/schemas/DocumentStatusPayload"
+            },
+            "title": "Documents",
+            "type": "array"
+          },
+          "documents_completed": {
+            "description": "Documents that finished, whether they completed or failed",
+            "title": "Documents Completed",
+            "type": "integer"
+          },
+          "documents_total": {
+            "title": "Documents Total",
+            "type": "integer"
+          },
+          "error": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/JobErrorPayload"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Set only when the whole job failed"
+          },
+          "expires_at": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Set once the job is terminal; state is dropped after this",
+            "title": "Expires At"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "state": {
+            "$ref": "#/components/schemas/JobState"
+          },
+          "updated_at": {
+            "title": "Updated At",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "state",
+          "documents_total",
+          "documents_completed",
+          "created_at",
+          "updated_at",
+          "documents"
+        ],
+        "title": "JobStatusResponse",
+        "type": "object"
+      },
+      "LineComparison": {
+        "properties": {
+          "description": {
+            "title": "Description",
+            "type": "string"
+          },
+          "item_code": {
+            "title": "Item Code",
+            "type": "string"
+          },
+          "matched_by": {
+            "$ref": "#/components/schemas/MatchMethod"
+          },
+          "max_unit_price": {
+            "title": "Max Unit Price",
+            "type": "string"
+          },
+          "quantity_difference": {
+            "title": "Quantity Difference",
+            "type": "string"
+          },
+          "quantity_difference_percent": {
+            "title": "Quantity Difference Percent",
+            "type": "string"
+          },
+          "quoted_quantity": {
+            "title": "Quoted Quantity",
+            "type": "string"
+          },
+          "quoted_unit_price": {
+            "title": "Quoted Unit Price",
+            "type": "string"
+          },
+          "request_line_text": {
+            "title": "Request Line Text",
+            "type": "string"
+          },
+          "requested_quantity": {
+            "title": "Requested Quantity",
+            "type": "string"
+          },
+          "unit_price_difference": {
+            "title": "Unit Price Difference",
+            "type": "string"
+          },
+          "unit_price_difference_percent": {
+            "title": "Unit Price Difference Percent",
+            "type": "string"
+          }
+        },
+        "required": [
+          "matched_by",
+          "item_code",
+          "description",
+          "request_line_text",
+          "requested_quantity",
+          "quoted_quantity",
+          "quantity_difference",
+          "quantity_difference_percent",
+          "max_unit_price",
+          "quoted_unit_price",
+          "unit_price_difference",
+          "unit_price_difference_percent"
+        ],
+        "title": "LineComparison",
+        "type": "object"
+      },
+      "MatchMethod": {
+        "enum": [
+          "item_code",
+          "description"
+        ],
+        "title": "MatchMethod",
+        "type": "string"
+      },
+      "ProgressState": {
+        "description": "Status of one document or one UI stage. The same four values everywhere.",
+        "enum": [
+          "pending",
+          "processing",
+          "completed",
+          "failed"
+        ],
+        "title": "ProgressState",
+        "type": "string"
+      },
+      "PurchaseRequestComparison": {
+        "properties": {
+          "detail": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Detail"
+          },
+          "issue": {
+            "$ref": "#/components/schemas/ComparisonIssue",
+            "default": "none"
+          },
+          "line": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/LineComparison"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "title": "PurchaseRequestComparison",
+        "type": "object"
+      },
+      "Quote": {
+        "properties": {
+          "bin": {
+            "$ref": "#/components/schemas/ExtractedField_str_"
+          },
+          "line_items": {
+            "items": {
+              "$ref": "#/components/schemas/QuoteLineItem"
+            },
+            "title": "Line Items",
+            "type": "array"
+          },
+          "purchase_request_reference": {
+            "$ref": "#/components/schemas/ExtractedField_str_"
+          },
+          "quotation_number": {
+            "$ref": "#/components/schemas/ExtractedField_str_"
+          },
+          "quote_date": {
+            "$ref": "#/components/schemas/ExtractedField_str_"
+          },
+          "subtotal": {
+            "$ref": "#/components/schemas/ExtractedField_Annotated_Decimal__PlainSerializer__"
+          },
+          "supplier_name": {
+            "$ref": "#/components/schemas/ExtractedField_str_"
+          },
+          "terms": {
+            "$ref": "#/components/schemas/Terms"
+          },
+          "tin": {
+            "$ref": "#/components/schemas/ExtractedField_str_"
+          },
+          "total": {
+            "$ref": "#/components/schemas/ExtractedField_Annotated_Decimal__PlainSerializer__"
+          },
+          "vat_amount": {
+            "$ref": "#/components/schemas/ExtractedField_Annotated_Decimal__PlainSerializer__"
+          },
+          "vat_rate": {
+            "$ref": "#/components/schemas/ExtractedField_Annotated_Decimal__PlainSerializer__"
+          },
+          "vat_statement": {
+            "$ref": "#/components/schemas/ExtractedField_str_"
+          }
+        },
+        "required": [
+          "supplier_name",
+          "quotation_number",
+          "quote_date",
+          "purchase_request_reference",
+          "line_items",
+          "subtotal",
+          "vat_statement",
+          "vat_rate",
+          "vat_amount",
+          "total",
+          "tin",
+          "bin",
+          "terms"
+        ],
+        "title": "Quote",
+        "type": "object"
+      },
+      "QuoteLineItem": {
+        "properties": {
+          "description": {
+            "$ref": "#/components/schemas/ExtractedField_str_"
+          },
+          "item_code": {
+            "$ref": "#/components/schemas/ExtractedField_str_"
+          },
+          "line_total": {
+            "$ref": "#/components/schemas/ExtractedField_Annotated_Decimal__PlainSerializer__"
+          },
+          "quantity": {
+            "$ref": "#/components/schemas/ExtractedField_Annotated_Decimal__PlainSerializer__"
+          },
+          "unit": {
+            "$ref": "#/components/schemas/ExtractedField_str_"
+          },
+          "unit_price": {
+            "$ref": "#/components/schemas/ExtractedField_Annotated_Decimal__PlainSerializer__"
+          }
+        },
+        "required": [
+          "item_code",
+          "description",
+          "unit",
+          "quantity",
+          "unit_price",
+          "line_total"
+        ],
+        "title": "QuoteLineItem",
+        "type": "object"
+      },
+      "Reason": {
+        "properties": {
+          "code": {
+            "title": "Code",
+            "type": "string"
+          },
+          "detail": {
+            "title": "Detail",
+            "type": "string"
+          },
+          "evidence": {
+            "items": {
+              "$ref": "#/components/schemas/Evidence"
+            },
+            "title": "Evidence",
+            "type": "array"
+          },
+          "rule_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Rule Id"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          }
+        },
+        "required": [
+          "code",
+          "rule_id",
+          "title",
+          "detail"
+        ],
+        "title": "Reason",
+        "type": "object"
+      },
+      "StageStatusPayload": {
+        "properties": {
+          "name": {
+            "description": "Stage label, in the order the frontend shows it",
+            "title": "Name",
+            "type": "string"
+          },
+          "status": {
+            "$ref": "#/components/schemas/ProgressState"
+          }
+        },
+        "required": [
+          "name",
+          "status"
+        ],
+        "title": "StageStatusPayload",
+        "type": "object"
+      },
+      "Terms": {
+        "properties": {
+          "advance_percent": {
+            "$ref": "#/components/schemas/ExtractedField_Annotated_Decimal__PlainSerializer__"
+          },
+          "delivery_days": {
+            "$ref": "#/components/schemas/ExtractedField_Annotated_Decimal__PlainSerializer__"
+          },
+          "late_penalty_clause": {
+            "$ref": "#/components/schemas/ExtractedField_str_"
+          },
+          "payment_days": {
+            "$ref": "#/components/schemas/ExtractedField_Annotated_Decimal__PlainSerializer__"
+          },
+          "penalty_basis_order_value": {
+            "$ref": "#/components/schemas/ExtractedField_bool_"
+          },
+          "penalty_percent_per_week": {
+            "$ref": "#/components/schemas/ExtractedField_Annotated_Decimal__PlainSerializer__"
+          },
+          "validity_days": {
+            "$ref": "#/components/schemas/ExtractedField_Annotated_Decimal__PlainSerializer__"
+          }
+        },
+        "required": [
+          "advance_percent",
+          "payment_days",
+          "delivery_days",
+          "late_penalty_clause",
+          "penalty_percent_per_week",
+          "penalty_basis_order_value",
+          "validity_days"
+        ],
+        "title": "Terms",
+        "type": "object"
+      },
+      "ValidationError": {
+        "properties": {
+          "ctx": {
+            "title": "Context",
+            "type": "object"
+          },
+          "input": {
+            "title": "Input"
+          },
+          "loc": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            },
+            "title": "Location",
+            "type": "array"
+          },
+          "msg": {
+            "title": "Message",
+            "type": "string"
+          },
+          "type": {
+            "title": "Error Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "loc",
+          "msg",
+          "type"
+        ],
+        "title": "ValidationError",
+        "type": "object"
+      }
+    }
+  },
+  "info": {
+    "summary": "Deterministic checks for supplier quotations against a purchase request.",
+    "title": "Supplier Document Checker",
+    "version": "0.1.0"
+  },
+  "openapi": "3.1.0",
+  "paths": {
+    "/health": {
+      "get": {
+        "operationId": "health_health_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HealthResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Invalid uploads or request"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unknown or expired job"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Results are not available yet"
+          },
+          "413": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "A file is too large"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Too many jobs, or rate limited"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "The server could not complete the request"
+          }
+        },
+        "summary": "Liveness check"
+      }
+    },
+    "/jobs": {
+      "post": {
+        "description": "Accepts one purchase request CSV or JSON file and one or more supplier quotation PDFs. Returns immediately; processing continues in the background.",
+        "operationId": "create_job_jobs_post",
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/Body_create_job_jobs_post"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JobCreatedResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Invalid uploads or request"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unknown or expired job"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Results are not available yet"
+          },
+          "413": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "A file is too large"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Too many jobs, or rate limited"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "The server could not complete the request"
+          }
+        },
+        "summary": "Create a validation job"
+      }
+    },
+    "/jobs/{job_id}": {
+      "get": {
+        "description": "Small payload: overall state, counts and per-document stage statuses.",
+        "operationId": "get_job_jobs__job_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "job_id",
+            "required": true,
+            "schema": {
+              "title": "Job Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JobStatusResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Invalid uploads or request"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unknown or expired job"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Results are not available yet"
+          },
+          "413": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "A file is too large"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Too many jobs, or rate limited"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "The server could not complete the request"
+          }
+        },
+        "summary": "Poll job progress"
+      }
+    },
+    "/jobs/{job_id}/results": {
+      "get": {
+        "description": "One decision per document. Only available once the job is completed.",
+        "operationId": "get_job_results_jobs__job_id__results_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "job_id",
+            "required": true,
+            "schema": {
+              "title": "Job Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JobResultsResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Invalid uploads or request"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unknown or expired job"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Results are not available yet"
+          },
+          "413": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "A file is too large"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Too many jobs, or rate limited"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "The server could not complete the request"
+          }
+        },
+        "summary": "Read job results"
+      }
+    }
+  }
+}

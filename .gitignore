@@ -1,0 +1,72 @@
+# Sample files and generated artefacts never enter the public repo.
+data/
+.cache/
+tmp/
+temp/
+tmp-*/
+temp-*/
+**/tmp/
+**/temp/
+**/tmp-*/
+**/temp-*/
+
+# Secrets
+.env
+.env.*
+!.env.example
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+.python-version.local
+*.egg-info/
+build/
+dist/
+
+# Tooling caches
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+.coverage.*
+htmlcov/
+.tox/
+.nox/
+.hypothesis/
+
+# Frontend
+node_modules/
+dist/
+coverage/
+.vite/
+.eslintcache
+.vercel/
+*.tsbuildinfo
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+
+# Temporary and editor files
+*.tmp
+*.temp
+*.swp
+*.swo
+*~
+
+# Local editor and operating-system files
+.DS_Store
+Thumbs.db
+Desktop.ini
+.idea/
+.vscode/
+.agents
+.claude
+.codex
+.impeccable
+.opencode
+docs/

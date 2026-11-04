@@ -1,0 +1,11 @@
+pack,decision,rule_ids,notes
+supplier-pack-01,APPROVE,,All rules within limits
+supplier-pack-02,APPROVE,,Validity of exactly 30 days does not trigger the validity rule
+supplier-pack-03,REJECT,REJ-01,Unit price more than 3% above the maximum
+supplier-pack-04,NEEDS_PERSON,NP-01,Unit price above the maximum by no more than 3%
+supplier-pack-05,REJECT,REJ-02,Advance payment more than 20%
+supplier-pack-06,REJECT,REJ-03,No late-delivery penalty clause
+supplier-pack-07,NEEDS_PERSON,NP-02,Quantity differs from the request by more than 5%
+supplier-pack-08,REJECT,REJ-04,TIN and BIN absent; penalty basis unclear is an edge case that cannot change the decision
+supplier-pack-09,NEEDS_PERSON,NP-03;NP-06,Payment terms unclear (a range and as agreed); line total does not equal quantity x unit price
+supplier-pack-10,REJECT,REJ-05;NP-05,Delivery later than 45 days; VAT not shown separately at 15%
