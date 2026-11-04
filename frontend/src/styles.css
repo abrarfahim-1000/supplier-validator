@@ -37,7 +37,7 @@
   --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-.dark {
+:root[data-theme='dark'] {
   color-scheme: dark;
 
   --paper: #131210;
@@ -144,6 +144,40 @@ button {
   justify-content: space-between;
   gap: 24px;
   min-height: 64px;
+}
+
+.masthead__tools {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.theme-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  min-height: 36px;
+  padding: 0 10px;
+  border: 1px solid var(--rule-strong);
+  border-radius: var(--radius);
+  background: transparent;
+  color: var(--ink-2);
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: border-color 160ms var(--ease-out), color 160ms var(--ease-out), background-color 160ms var(--ease-out);
+}
+
+.theme-toggle:hover {
+  border-color: var(--accent);
+  background: var(--accent-wash);
+  color: var(--ink);
+}
+
+.theme-toggle:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
 }
 
 .wordmark {
@@ -1383,6 +1417,21 @@ button {
 
   .masthead__inner {
     min-height: 56px;
+    gap: 10px;
+  }
+
+  .masthead__tools {
+    gap: 10px;
+  }
+
+  .service > span:not(.service__dot) {
+    display: none;
+  }
+
+  .theme-toggle {
+    min-height: 34px;
+    padding-inline: 8px;
+    font-size: 11px;
   }
 
   .result__toggle {
